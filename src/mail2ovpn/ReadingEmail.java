@@ -25,6 +25,7 @@ public class ReadingEmail {
             System.out.println("SENT DATE:" + msg.getSentDate());
             System.out.println("SUBJECT:" + msg.getSubject());
             System.out.println("CONTENT:" + msg.getContent());//bp.getContent());
+            
         } catch (Exception mex) {
             mex.printStackTrace();
         }

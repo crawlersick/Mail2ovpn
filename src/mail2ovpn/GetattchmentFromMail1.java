@@ -7,13 +7,20 @@ package mail2ovpn;
 
 import NetTool.HTTPReachableTest;
 import RegTool.FetchString;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Store;
 
@@ -21,8 +28,8 @@ import javax.mail.Store;
  *
  * @author sadpanda
  */
-public class GetHostFromMail {
-    private static final Logger log = Logger.getLogger(GetHostFromMail.class.getName());
+public class GetattchmentFromMail1 {
+    private static final Logger log = Logger.getLogger(GetattchmentFromMail1.class.getName());
     private String IMapHost;
     private String MailId;
     private String MailPassword;
@@ -32,19 +39,20 @@ public class GetHostFromMail {
     String sentdate;
     String Content;
     String subject;
+    byte validvgbinary[];
     
-    public GetHostFromMail(String imap,String mid,String mpd)
+    public GetattchmentFromMail1(String imap,String mid,String mpd)
     {
         this.IMapHost=imap;
         this.MailId=mid;
         this.MailPassword=mpd;
     }
     
-    public String getValidVGHost(){
-    return ValidVGHost;
+    public byte[]  getValidVGattch(){
+    return validvgbinary;
     }
     
-    public boolean fetchmailforhost()
+    public boolean fetchmailforattch() throws IOException, MessagingException
     {
         boolean fetchtest=false;
         
@@ -69,7 +77,9 @@ public class GetHostFromMail {
                         fromadd=address.toString()+fromadd;
                         //System.out.println("FROM:" + address.toString());
                     }
-                if(fromadd.matches("VPN Gate Daily Mirrors <vpngate-daily@vpngate\\.net>"))
+                if(fromadd.matches("admin@cronmailservice.appspotmail.com")&&
+                        msg.getSubject().matches
+                        ("ThanksToTsukuba_World-on-my-shoulders-as-I-run-back-to-this-8-Mile-Road_cronmailservice"))
                     break;
             }
             
@@ -84,40 +94,51 @@ public class GetHostFromMail {
         //    Multipart mp = (Multipart) msg.getContent();
           //  BodyPart bp = mp.getBodyPart(0);
             sentdate=msg.getSentDate().toString();
-            //System.out.println("SENT DATE:" + msg.getSentDate());
+
             subject=msg.getSubject();
-            //System.out.println("SUBJECT:" + msg.getSubject());
+
             Content=msg.getContent().toString();
-            //System.out.println("CONTENT:" + msg.getContent());//bp.getContent());
-            
-            //System.out.println(Content);
+
             
             log.log(Level.INFO,Content);
+            log.log(Level.INFO,sentdate);
             
-        //    FetchString fs=new FetchString(Content,".*(http://[0-9a-zA-Z\\.]+:[0-9]+/).*");
-         //   FetchString fs2;
-            ArrayList<String> fetchhostlist=FetchString.getmatchstr(Content,".*(http://[0-9a-zA-Z\\.]+:[0-9]+/).*");
             
-            String targethoststring;
-            int targetport;
-            ArrayList<String> temprec;
-            HTTPReachableTest rt;
-            for(String tempstr:fetchhostlist)
-            {
-                
-                log.log(Level.INFO, "got url: "+tempstr);
-          //      fs2=new FetchString(tempstr,"http://([0-9a-zA-Z\\.]+):[0-9]+/).*");
-                ValidVGHost=tempstr;
-                
-                temprec=FetchString.getmatchstr(tempstr,"http://([0-9a-zA-Z\\.]+):[0-9]+/.*");
-                 targethoststring=temprec.get(0);
-                 temprec=FetchString.getmatchstr(tempstr,"http://[0-9a-zA-Z\\.]+:([0-9]+)/.*");
-                 targetport=Integer.parseInt(temprec.get(0));
-                 
-                 rt=new HTTPReachableTest(targethoststring,targetport);
-                 if(rt.doTest())
-                     break;
+            Multipart multipart = (Multipart) msg.getContent();
+            for (int i = 0; i < multipart.getCount(); i++) {
+            BodyPart bodyPart = multipart.getBodyPart(i);
+            if(!Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition()) &&
+                       (bodyPart.getFileName()==null||!bodyPart.getFileName().equals("dataforvgendwithudp.gzip"))
+                    ) {
+              continue; // dealing with attachments only
             }
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            InputStream is = bodyPart.getInputStream();
+            //validvgbinary = IOUtils.toByteArray(is);
+            int nRead;
+            byte[] data = new byte[5000000];
+
+            while ((nRead = is.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, nRead);
+                    }
+
+        buffer.flush();
+
+        validvgbinary= buffer.toByteArray();
+            break;
+            }
+            
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
             fetchtest=true;
         } catch (Exception mex) {
@@ -131,8 +152,15 @@ public class GetHostFromMail {
     
     public static void main(String args[])
     {
-        GetHostFromMail ghfm=new GetHostFromMail("imap-mail.outlook.com", "temp1q2w3e@hotmail.com", "Testing123");
-        ghfm.fetchmailforhost();
-        System.out.println(ghfm.getValidVGHost());
+        GetattchmentFromMail1 ghfm=new GetattchmentFromMail1("imap-mail.outlook.com", "temp1q2w3e@hotmail.com", "Testing123");
+        try {
+            ghfm.fetchmailforattch();
+            System.out.println(ghfm.getValidVGattch().length);
+         //   System.out.println(new String(ghfm.getValidVGattch(),"UTF-8"));
+        } catch (IOException ex) {
+            Logger.getLogger(GetattchmentFromMail1.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MessagingException ex) {
+            Logger.getLogger(GetattchmentFromMail1.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }    
 }

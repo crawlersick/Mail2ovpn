@@ -29,7 +29,10 @@ import javax.mail.MessagingException;
  */
 public class Mail2ovpn {
 private static final Logger logger = Logger.getLogger(Mail2ovpn.class.getName());
-static String  folder_tar="/home/sadpanda/VPN/";
+static String  folder_tar="xxxx";
+static String  imapserver="xxxx";
+static String  mailacct="xxx";
+static String  mailpass="xxx";
     /**
      * @param args the command line arguments
      */
@@ -38,9 +41,22 @@ static String  folder_tar="/home/sadpanda/VPN/";
         
                 
 
-        if(args != null&&args.length==1)
+        if(args != null&&args.length==4)
         {
            folder_tar=args[0];   
+           imapserver=args[1];   
+           mailacct=args[2];   
+           mailpass=args[3];           
+        }else
+        {
+        System.out.println("==========================================================");
+        System.out.println("parameter error, refer to below parameter list:");
+        System.out.println("1.output folder name");
+        System.out.println("2.imap server host address");
+        System.out.println("3.mail account");
+        System.out.println("4.mail password");
+        System.out.println("==========================================================");
+        System.exit(1);
         }
         
            File tempfile;
